@@ -75,17 +75,26 @@ export const CheckoutPage = () => {
   if (!isLoaded) return <div className="min-h-screen flex items-center justify-center font-semibold text-gray-500">Loading...</div>;
 
   const handleContinueToPayment = () => {
+    // Mengumpulkan seluruh data keranjang, alamat, dan total untuk dikirim ke Swift
+    const checkoutData = {
+        items: cartItems,
+        address: savedAddress,
+        subtotal: subtotal,
+        deliveryCharge: totalDeliveryCharge,
+        totalAmount: total
+    };
     const payload = JSON.stringify({
         action: 'OPEN_PAYMENT_NATIVE',
-        totalAmount: total
+        data: JSON.stringify(checkoutData) 
     });
     // 1. JS Bridge untuk Native iOS (Swift WKWebView)
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.BankInaBridge) {
+    if (typeof window !== 'undefined' && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.BankInaBridge) {
         window.webkit.messageHandlers.BankInaBridge.postMessage(payload);
     } 
     // 2. Fallback: Intercept Custom URL
     else {
-        window.location.href = `bankina://payment?data=${encodeURIComponent(payload)}`;
+        // Ganti "window.location.href =" dengan "window.location.assign(...)"
+        window.location.assign(`bankina://payment?data=${encodeURIComponent(payload)}`);
     }
   };
 
