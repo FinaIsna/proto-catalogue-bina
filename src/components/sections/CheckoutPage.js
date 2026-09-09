@@ -72,20 +72,22 @@ export const CheckoutPage = () => {
 
   // FUNGSI JEMBATAN KE NATIVE MOBILE (SWIFT)
   const handlePay = () => {
+    // 1. Kumpulkan data yang akan dikirim
+    const paymentData = {
+        totalAmount: total,
+        paymentMethod: paymentMethod, // nilainya: 'tabungan' atau 'loan'
+        promoCode: promoCode
+    };
+    // 2. Bungkus ke dalam properti "data" sebagai String, sesuai permintaan WebView.swift
     const payload = JSON.stringify({
         action: 'OPEN_PAYMENT_NATIVE',
-        totalAmount: total,
-        paymentMethod: paymentMethod, // tabungan atau loan
-        promoCode: promoCode
+        data: JSON.stringify(paymentData) 
     });
-
-    // 1. JS Bridge untuk Native iOS (Swift WKWebView)
     if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.BankInaBridge) {
         window.webkit.messageHandlers.BankInaBridge.postMessage(payload);
     } 
-    // 2. JS Bridge alternatif / Fallback Intercept Custom URL
     else {
-        window.location.href = `bankina://payment?data=${encodeURIComponent(payload)}`;
+        window.location.href = `bankina://payment?data=${encodeURIComponent(JSON.stringify(paymentData))}`;
     }
   };
 
@@ -147,7 +149,7 @@ export const CheckoutPage = () => {
             {cartItems.map((item) => (
               <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center border-b border-gray-50 pb-6">
                 <div className="col-span-1 md:col-span-5 flex items-center gap-4">
-                  <div className="w-24 h-24 relative rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                  <div className="w-24 h-24 relative rounded-xl overflow-hidden bg-gray-100 shrink-0">
                     {item.image && (
                       <Image src={item.image} alt={item.title} fill className="object-cover" sizes="96px" />
                     )}
